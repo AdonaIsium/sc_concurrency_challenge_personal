@@ -3,6 +3,7 @@ package types
 import (
 	"context"
 	"fmt"
+	"math"
 	"sync"
 	"time"
 )
@@ -281,6 +282,70 @@ func (us UnitState) IsValid() bool {
 	return us >= Idle && us < unitStateCount
 }
 
+type ElevationLayer int
+
+const (
+	Burrowed ElevationLayer = iota
+	Ground
+	Air
+
+	elevationLayerCount
+)
+
+var _ fmt.Stringer = ElevationLayer(0)
+
+var elevationLayerNames = map[ElevationLayer]string{
+	Burrowed: "Burrowed",
+	Ground:   "Ground",
+	Air:      "Air",
+}
+
+func (el ElevationLayer) String() string {
+	if name, ok := elevationLayerNames[el]; ok {
+		return name
+	}
+	return fmt.Sprintf("ElevationLayer(%d)", el)
+}
+
+func (el ElevationLayer) IsValid() bool {
+	return el >= Burrowed && el < elevationLayerCount
+}
+
+type TerrainType int
+
+const (
+	LowGround TerrainType = iota
+	MiddleGround
+	HighGround
+	LowMiddleRamp
+	MiddleHighRamp
+	Water
+
+	terrainTypeCount
+)
+
+var _ fmt.Stringer = TerrainType(0)
+
+var terrainTypeNames = map[TerrainType]string{
+	LowGround:      "LowGround",
+	MiddleGround:   "MiddleGround",
+	HighGround:     "HighGround",
+	LowMiddleRamp:  "LowMiddleRamp",
+	MiddleHighRamp: "MiddleHighRamp",
+	Water:          "Water",
+}
+
+func (tt TerrainType) String() string {
+	if name, ok := terrainTypeNames[tt]; ok {
+		return name
+	}
+	return fmt.Sprintf("TerrainType(%d)", tt)
+}
+
+func (tt TerrainType) IsValid() bool {
+	return tt >= LowGround && tt < terrainTypeCount
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // SECTION 2: VALUE TYPES (NO CONCURRENCY... YET)
 // ═══════════════════════════════════════════════════════════════════════════
@@ -310,7 +375,6 @@ func (us UnitState) IsValid() bool {
 type Position struct {
 	X float64
 	Y float64
-	// 🏗️ OPTIONAL: Add Z float64 if you want 3D or elevation
 }
 
 // Distance calculates the Euclidean distance between two positions
@@ -318,7 +382,12 @@ type Position struct {
 // 🤔 BEFORE YOU CODE:
 // Q1: What's the formula for distance between two points?
 // Q2: Why use math.Sqrt? Can we avoid it for performance?
+// A2: We have to use it if we want the exact distance between the two units
+// If just comparing distances,
 // Q3: What's "Euclidean distance" vs "Manhattan distance"?
+// A3: Euclidean distance is the direct distance from point X to point Y
+// Manhattan distance is the distance between X and Y if one can only move
+// in grid aligned steps
 //
 // 🎯 HINT LEVEL 1: Pythagorean theorem: a² + b² = c²
 // 🎯 HINT LEVEL 2: sqrt((x2-x1)² + (y2-y1)²)
@@ -326,14 +395,12 @@ type Position struct {
 //
 // 🏗️ YOUR CHALLENGE: Implement this method
 // Template:
-/*
+
 func (p Position) Distance(other Position) float64 {
 	dx := other.X - p.X
 	dy := other.Y - p.Y
-	// Calculate and return distance using Pythagorean theorem
-	return 0.0 // Replace this!
+	return math.Sqrt(dx*dx + dy*dy)
 }
-*/
 
 // DistanceSquared returns the squared distance (faster, no sqrt)
 //
@@ -348,6 +415,13 @@ func (p Position) Distance(other Position) float64 {
 //
 // 🏗️ YOUR CHALLENGE: Implement DistanceSquared
 // It's like Distance() but without the math.Sqrt() call
+
+func (p Position) DistanceSq(other Position) float64 {
+	dx := other.X - p.X
+	dy := other.Y - p.Y
+	return dx*dx + dy*dy
+}
+
 //
 // 🎯 HINT: Just return dx*dx + dy*dy
 
@@ -407,13 +481,14 @@ type Unit struct {
 	// ═══════════════════════════════════════════════════════════════════════
 	// MUTABLE STATE (Protected by mutex—multiple goroutines access this!)
 	// ═══════════════════════════════════════════════════════════════════════
-	mu        sync.RWMutex // Protects ALL fields below
-	health    int          // Current health (0 = dead)
-	maxHealth int          // Maximum health
-	damage    int          // Attack damage
-	state     UnitState    // Current state (Idle, Moving, etc.)
-	position  Position     // Current position
-	target    *Unit        // Currently attacking this unit (nil if none)
+	mu             sync.RWMutex   // Protects ALL fields below
+	health         int            // Current health (0 = dead)
+	maxHealth      int            // Maximum health
+	damage         int            // Attack damage
+	state          UnitState      // Current state (Idle, Moving, etc.)
+	elevationLayer ElevationLayer // Current Elevation (Burrowed, Flying, Ground)
+	position       Position       // Current position
+	target         *Unit          // Currently attacking this unit (nil if none)
 
 	// ═══════════════════════════════════════════════════════════════════════
 	// CONCURRENCY PRIMITIVES (Channels, Context, Coordination)
@@ -423,6 +498,11 @@ type Unit struct {
 	ctx      context.Context    // For cancellation/shutdown
 	cancel   context.CancelFunc // Call this to stop the unit's goroutine
 	wg       *sync.WaitGroup    // For coordinated shutdown
+}
+
+type Tile struct {
+	Position Position
+	Terrain  TerrainType
 }
 
 // 🤔 PAUSE AND REFLECT:
@@ -670,4 +750,5 @@ type UnitEvent struct {
 // Continue in types.go for your implementations...
 // Remember: The goal isn't just to make it work—it's to UNDERSTAND why it works!
 //
+
 // **GG HF!** (Good Game, Have Fun learning!) 🎯
