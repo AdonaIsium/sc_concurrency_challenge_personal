@@ -2,21 +2,18 @@ package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"log"
 	"os"
-	"os/signal"
 	"sync"
-	"syscall"
 	"time"
 
 	// Import your internal packages
-	"github.com/AdonaIsium/stacraft_concurrency_war_claude/internal/battle"
-	"github.com/AdonaIsium/stacraft_concurrency_war_claude/internal/coordination"
-	"github.com/AdonaIsium/stacraft_concurrency_war_claude/internal/resources"
-	"github.com/AdonaIsium/stacraft_concurrency_war_claude/internal/types"
-	"github.com/AdonaIsium/stacraft_concurrency_war_claude/internal/units"
+	"github.com/AdonaIsium/sc_concurrency_challenge_personal/internal/battle"
+	"github.com/AdonaIsium/sc_concurrency_challenge_personal/internal/coordination"
+	"github.com/AdonaIsium/sc_concurrency_challenge_personal/internal/resources"
+	"github.com/AdonaIsium/sc_concurrency_challenge_personal/internal/types"
+	"github.com/AdonaIsium/sc_concurrency_challenge_personal/internal/units"
 )
 
 // LEARNING NOTE: This main.go demonstrates:
@@ -30,20 +27,20 @@ import (
 // Config holds application configuration
 type Config struct {
 	// Simulation parameters
-	TickRate         time.Duration
-	BattleDuration   time.Duration
-	NumberOfUnits    int
-	CommandWorkers   int
+	TickRate       time.Duration
+	BattleDuration time.Duration
+	NumberOfUnits  int
+	CommandWorkers int
 
 	// Scenario selection
-	Scenario         string
-	LogLevel         string
-	OutputFormat     string
+	Scenario     string
+	LogLevel     string
+	OutputFormat string
 
 	// Performance settings
-	EnableProfiling  bool
-	ProfilePort      int
-	MetricsPort      int
+	EnableProfiling bool
+	ProfilePort     int
+	MetricsPort     int
 }
 
 // Application represents the main application state
@@ -51,19 +48,19 @@ type Application struct {
 	config Config
 
 	// Core systems
-	ctx            context.Context
-	cancel         context.CancelFunc
-	wg             *sync.WaitGroup
+	ctx    context.Context
+	cancel context.CancelFunc
+	wg     *sync.WaitGroup
 
 	// Simulation components
-	unitManager    *units.UnitManager
+	unitManager     *units.UnitManager
 	resourceManager *resources.ResourceManager
 	battleSimulator *battle.BattleSimulator
-	commander      *coordination.Commander
+	commander       *coordination.Commander
 
 	// Monitoring and metrics
-	metrics        *Metrics
-	logger         *Logger
+	metrics *Metrics
+	logger  *Logger
 }
 
 // main is the application entry point
@@ -477,3 +474,4 @@ func (app *Application) reportPerformanceStats() {
 // - Design for testability and maintainability
 // - Handle errors appropriately at each level
 // - Use dependency injection for clean architecture
+

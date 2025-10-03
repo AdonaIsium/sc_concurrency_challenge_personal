@@ -2,11 +2,10 @@ package units
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
-	"github.com/AdonaIsium/stacraft_concurrency_war_claude/internal/types"
+	"github.com/AdonaIsium/sc_concurrency_challenge_personal/internal/types"
 )
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -73,67 +72,69 @@ import (
 // 💭 BEFORE YOU CODE: Ask yourself these questions (like planning a build order)
 //
 // Q1: How is UnitManager like a StarCraft Command Center?
-//     What responsibilities does it have?
-//     What does it coordinate vs. what do units do independently?
+//
+//	What responsibilities does it have?
+//	What does it coordinate vs. what do units do independently?
 //
 // Q2: Why do we need BOTH a worker pool AND command broadcasting?
-//     When would you use one vs. the other?
-//     (Hint: Think individual commands vs. group commands)
+//
+//	When would you use one vs. the other?
+//	(Hint: Think individual commands vs. group commands)
 //
 // Q3: How does the MTG stack handle priority and ordering?
-//     How does that relate to our command queue?
-//     What happens if commands arrive faster than we can process?
 //
+//	How does that relate to our command queue?
+//	What happens if commands arrive faster than we can process?
 type UnitManager struct {
 	mu    sync.RWMutex
 	units map[string]*types.Unit
 
 	// Channels for coordination
-	commandBroadcast chan BroadcastCommand     // 📡 Fan-out: One source → many destinations
-	statusUpdates    chan types.StatusUpdate   // 📥 Fan-in: Many sources → one aggregator
+	commandBroadcast chan BroadcastCommand   // 📡 Fan-out: One source → many destinations
+	statusUpdates    chan types.StatusUpdate // 📥 Fan-in: Many sources → one aggregator
 
 	// Event handling (Observer pattern)
-	eventListeners []chan UnitManagerEvent     // 👀 Pub/Sub: State changes notify observers
+	eventListeners []chan UnitManagerEvent // 👀 Pub/Sub: State changes notify observers
 
 	// Worker pools (Bounded concurrency)
-	commandWorkers  int                        // 🔢 How many "workers mining the patch"
-	commandQueue    chan QueuedCommand         // 📋 Work queue: Buffered channel = async
-	workerPool      chan chan QueuedCommand   // 🏊 Pool: Available workers register here
+	commandWorkers int                     // 🔢 How many "workers mining the patch"
+	commandQueue   chan QueuedCommand      // 📋 Work queue: Buffered channel = async
+	workerPool     chan chan QueuedCommand // 🏊 Pool: Available workers register here
 
 	// Lifecycle management
-	ctx       context.Context                  // 🛑 Cancellation signal
-	cancel    context.CancelFunc               // 🚨 Trigger shutdown
-	wg        *sync.WaitGroup                  // ⏳ Wait for goroutines to finish
-	isRunning bool                             // 🔴 State flag
+	ctx       context.Context    // 🛑 Cancellation signal
+	cancel    context.CancelFunc // 🚨 Trigger shutdown
+	wg        *sync.WaitGroup    // ⏳ Wait for goroutines to finish
+	isRunning bool               // 🔴 State flag
 }
 
 // BroadcastCommand represents a command sent to multiple units
 //
 // 💡 SC:BW ANALOGY: This is like boxing 12 Marines and issuing an attack-move
-//    - TargetIDs: Specific units (like control groups 1-9)
-//    - Predicate: Dynamic filter (like "all Marines with >50 HP")
-//    - MaxTargets: Limit (like "only 6 closest units to this location")
-//    - Priority: Urgent commands jump the queue (like pulling workers)
+//   - TargetIDs: Specific units (like control groups 1-9)
+//   - Predicate: Dynamic filter (like "all Marines with >50 HP")
+//   - MaxTargets: Limit (like "only 6 closest units to this location")
+//   - Priority: Urgent commands jump the queue (like pulling workers)
 type BroadcastCommand struct {
-	Command     types.Command
-	TargetIDs   []string                      // Empty = all units (F2 in SC2)
-	Predicate   func(*types.Unit) bool        // Dynamic targeting function
-	MaxTargets  int                           // Limit broadcast scope
-	Priority    int                           // Higher = more urgent
+	Command    types.Command
+	TargetIDs  []string               // Empty = all units (F2 in SC2)
+	Predicate  func(*types.Unit) bool // Dynamic targeting function
+	MaxTargets int                    // Limit broadcast scope
+	Priority   int                    // Higher = more urgent
 }
 
 // QueuedCommand represents a command waiting to be processed
 //
 // 💡 MTG ANALOGY: This is like spells on the stack waiting to resolve
-//    - Priority: Like split second spells vs. sorceries
-//    - Timestamp: When it was cast (for LIFO resolution)
-//    - Response: Like getting the result of "draw a card" asynchronously
+//   - Priority: Like split second spells vs. sorceries
+//   - Timestamp: When it was cast (for LIFO resolution)
+//   - Response: Like getting the result of "draw a card" asynchronously
 type QueuedCommand struct {
 	UnitID    string
 	Command   types.Command
 	Priority  int
 	Timestamp time.Time
-	Response  chan CommandResult              // 🔄 Async result channel
+	Response  chan CommandResult // 🔄 Async result channel
 }
 
 // CommandResult represents the result of executing a command
@@ -291,14 +292,16 @@ func NewUnitManager(ctx context.Context, commandWorkers int) *UnitManager {
 // 💭 BEFORE YOU CODE:
 //
 // Q1: Why use RWMutex instead of regular Mutex here?
-//     💡 Hint: How often do we read vs. write the units map?
+//
+//	💡 Hint: How often do we read vs. write the units map?
 //
 // Q2: After adding a unit to the map, how do we forward its status updates
-//     to the manager's statusUpdates channel?
-//     💡 SC:BW: Each worker reports minerals gathered to the main counter
+//
+//	to the manager's statusUpdates channel?
+//	💡 SC:BW: Each worker reports minerals gathered to the main counter
 //
 // Q3: What validation should we do before adding?
-//     - Nil check? ID uniqueness? State validation?
+//   - Nil check? ID uniqueness? State validation?
 func (um *UnitManager) AddUnit(unit *types.Unit) error {
 	// ┌─────────────────────────────────────────────────────────────────────┐
 	// │ 🥉 HINT LEVEL 1: The Sequence                                       │
@@ -401,8 +404,9 @@ func (um *UnitManager) GetUnit(unitID string) (*types.Unit, bool) {
 // Why return a COPY of the map instead of returning um.units directly?
 //
 // 💡 SC:BW: It's like taking a screenshot of your unit composition. The screenshot
-//    doesn't change when units die—it's frozen in time. If you returned the
-//    actual map, external code could modify it without locks = data race!
+//
+//	doesn't change when units die—it's frozen in time. If you returned the
+//	actual map, external code could modify it without locks = data race!
 func (um *UnitManager) GetAllUnits() map[string]*types.Unit {
 	// ┌─────────────────────────────────────────────────────────────────────┐
 	// │ 🥉 HINT: Create new map, copy all entries under read lock            │
@@ -432,7 +436,8 @@ func (um *UnitManager) GetUnitsByType(unitType types.UnitType) []*types.Unit {
 // 💰 POINTS: 15 pts (Spatial query with distance calculation)
 //
 // 💡 SC:BW: This is like selecting units in a screen area, or finding targets
-//    for splash damage (Psi Storm, Siege Tank shot)
+//
+//	for splash damage (Psi Storm, Siege Tank shot)
 func (um *UnitManager) GetUnitsInRange(center types.Position, radius float64) []*types.Unit {
 	// 🎯 YOUR IMPLEMENTATION HERE (use Position.Distance() from types.go)
 	return nil
@@ -452,7 +457,8 @@ func (um *UnitManager) GetUnitsInRange(center types.Position, radius float64) []
 // goroutine (running in the background) will fan it out to matching units.
 //
 // 💡 KEY INSIGHT: Use non-blocking send (select with default) to avoid hanging
-//    if the channel is full. Better to return an error than deadlock!
+//
+//	if the channel is full. Better to return an error than deadlock!
 func (um *UnitManager) BroadcastCommand(bc BroadcastCommand) error {
 	// ┌─────────────────────────────────────────────────────────────────────┐
 	// │ 🥉 HINT: Non-blocking channel send pattern                          │
@@ -479,7 +485,8 @@ func (um *UnitManager) BroadcastCommand(bc BroadcastCommand) error {
 // can continue doing other work and check the channel later (async!).
 //
 // 💡 MTG: Like casting a spell with "Scry 2" attached. You get the spell effect
-//    immediately, but the scry happens asynchronously and you see the result later.
+//
+//	immediately, but the scry happens asynchronously and you see the result later.
 func (um *UnitManager) SendCommand(unitID string, command types.Command, priority int) <-chan CommandResult {
 	response := make(chan CommandResult, 1) // Buffered so sender never blocks
 
@@ -516,7 +523,8 @@ func (um *UnitManager) SendCommand(unitID string, command types.Command, priorit
 // 💰 POINTS: 10 pts (Pub/Sub pattern implementation)
 //
 // 💡 SC:BW REPLAY: Multiple observers can watch the same game. Each observer
-//    gets their own "replay feed" channel of events.
+//
+//	gets their own "replay feed" channel of events.
 func (um *UnitManager) AddEventListener() <-chan UnitManagerEvent {
 	// ┌─────────────────────────────────────────────────────────────────────┐
 	// │ 🥉 HINT: Create channel, add to slice, return read-only version     │
@@ -548,12 +556,12 @@ func (um *UnitManager) GetStats() UnitStats {
 }
 
 type UnitStats struct {
-	TotalUnits      int
-	UnitsByType     map[types.UnitType]int
-	UnitsByState    map[types.UnitState]int
-	AverageHealth   float64
-	CommandsPerSec  float64
-	ActiveCommands  int
+	TotalUnits     int
+	UnitsByType    map[types.UnitType]int
+	UnitsByState   map[types.UnitState]int
+	AverageHealth  float64
+	CommandsPerSec float64
+	ActiveCommands int
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -652,13 +660,16 @@ func (um *UnitManager) Shutdown(timeout time.Duration) error {
 // 💭 WORKER POOL THEORY:
 //
 // MTG: Imagine you have 4 mana available. You can only respond to 4 instants
-//      at once—any more have to wait. Worker pool = limited mana.
+//
+//	at once—any more have to wait. Worker pool = limited mana.
 //
 // SC:BW: You have 3 workers per mineral patch. More workers = inefficient,
-//        fewer = underutilized. Worker pool = optimal parallelism.
+//
+//	fewer = underutilized. Worker pool = optimal parallelism.
 //
 // Go: Instead of spawning a goroutine per command (unbounded = dangerous),
-//     spawn N workers that pull commands from a queue. Bounded concurrency!
+//
+//	spawn N workers that pull commands from a queue. Bounded concurrency!
 //
 // THE PATTERN:
 // 1. Create N worker goroutines
@@ -853,7 +864,8 @@ func (um *UnitManager) commandDispatcher() {
 // Many units send status updates → One aggregator processes them all
 //
 // SC:BW: 8 workers mining, each reports "minerals +8" individually.
-//        The aggregator sums them into total minerals.
+//
+//	The aggregator sums them into total minerals.
 //
 // MTG: "Draw a card for each creature that died this turn"—collect from many.
 func (um *UnitManager) statusAggregator() {

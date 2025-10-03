@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/AdonaIsium/stacraft_concurrency_war_claude/internal/types"
+	"github.com/AdonaIsium/sc_concurrency_challenge_personal/internal/types"
 )
 
 // LEARNING NOTE: Coordination system demonstrates:
@@ -23,14 +23,14 @@ type Commander struct {
 	rank CommanderRank
 
 	// Command hierarchy
-	superior    *Commander           // Who this commander reports to
+	superior     *Commander            // Who this commander reports to
 	subordinates map[string]*Commander // Commanders under this one
-	unitGroups  map[string]*UnitGroup // Unit groups under direct command
+	unitGroups   map[string]*UnitGroup // Unit groups under direct command
 
 	// Communication channels
-	commandChannel    chan Command         // Receives commands from superior
-	statusChannel     chan StatusReport   // Receives status from subordinates
-	broadcastChannel  chan BroadcastMessage // For all-hands communications
+	commandChannel   chan Command          // Receives commands from superior
+	statusChannel    chan StatusReport     // Receives status from subordinates
+	broadcastChannel chan BroadcastMessage // For all-hands communications
 
 	// Mission and objectives
 	currentMission *Mission
@@ -43,24 +43,24 @@ type Commander struct {
 
 	// Coordination state
 	coordinationState CoordinationState
-	lastContact      time.Time
-	responseTimeout  time.Duration
+	lastContact       time.Time
+	responseTimeout   time.Duration
 
 	// Lifecycle management
-	ctx       context.Context
-	cancel    context.CancelFunc
-	wg        *sync.WaitGroup
-	isActive  bool
+	ctx      context.Context
+	cancel   context.CancelFunc
+	wg       *sync.WaitGroup
+	isActive bool
 }
 
 // CommanderRank represents the hierarchy level
 type CommanderRank int
 
 const (
-	FieldCommander CommanderRank = iota // Individual unit groups
-	SectorCommander                     // Multiple unit groups
-	RegionalCommander                   // Multiple sectors
-	SupremeCommander                    // Top level
+	FieldCommander    CommanderRank = iota // Individual unit groups
+	SectorCommander                        // Multiple unit groups
+	RegionalCommander                      // Multiple sectors
+	SupremeCommander                       // Top level
 )
 
 // String method for CommanderRank
@@ -73,15 +73,15 @@ func (cr CommanderRank) String() string {
 // Command represents orders flowing down the command chain
 // LEARNING: Command pattern with acknowledgment and tracking
 type Command struct {
-	ID          string
-	Type        CommandType
-	Priority    Priority
-	Source      string        // Who issued this command
-	Target      string        // Who should execute it (can be "ALL")
-	Parameters  interface{}   // Command-specific data
-	Deadline    time.Time     // When this must be completed
-	RequiresAck bool         // Does this need acknowledgment?
-	ChainOfCommand []string  // Path this command has taken
+	ID             string
+	Type           CommandType
+	Priority       Priority
+	Source         string      // Who issued this command
+	Target         string      // Who should execute it (can be "ALL")
+	Parameters     interface{} // Command-specific data
+	Deadline       time.Time   // When this must be completed
+	RequiresAck    bool        // Does this need acknowledgment?
+	ChainOfCommand []string    // Path this command has taken
 
 	// Execution tracking
 	IssuedAt    time.Time
@@ -146,13 +146,13 @@ const (
 // StatusReport contains information flowing up the command chain
 // LEARNING: Status aggregation and reporting patterns
 type StatusReport struct {
-	ID          string
-	Source      string
-	Timestamp   time.Time
-	Type        ReportType
-	Summary     string
-	Details     interface{}
-	Priority    Priority
+	ID           string
+	Source       string
+	Timestamp    time.Time
+	Type         ReportType
+	Summary      string
+	Details      interface{}
+	Priority     Priority
 	RequestsHelp bool
 }
 
@@ -211,13 +211,13 @@ func NewCommander(ctx context.Context, id string, rank CommanderRank, config Com
 
 // CommanderConfig contains configuration for a commander
 type CommanderConfig struct {
-	ResponseTimeout   time.Duration
-	StatusInterval    time.Duration
-	DecisionInterval  time.Duration
-	MaxSubordinates   int
-	MaxUnitGroups     int
+	ResponseTimeout    time.Duration
+	StatusInterval     time.Duration
+	DecisionInterval   time.Duration
+	MaxSubordinates    int
+	MaxUnitGroups      int
 	CommunicationRange float64
-	AutoAcknowledge   bool
+	AutoAcknowledge    bool
 }
 
 // AddSubordinate adds a commander to this commander's hierarchy
@@ -315,11 +315,11 @@ type Objective struct {
 	ID          string
 	Type        ObjectiveType
 	Description string
-	Target      interface{}    // Position, unit, resource, etc.
+	Target      interface{} // Position, unit, resource, etc.
 	Success     SuccessCriteria
-	AssignedTo  []string      // Commander/group IDs
+	AssignedTo  []string // Commander/group IDs
 	Status      ObjectiveStatus
-	Progress    float64       // 0.0 to 1.0
+	Progress    float64 // 0.0 to 1.0
 }
 
 // ObjectiveType categorizes different objectives
@@ -336,10 +336,10 @@ const (
 
 // SuccessCriteria defines what constitutes success
 type SuccessCriteria struct {
-	Type        CriteriaType
-	Target      interface{}
-	Threshold   float64
-	TimeLimit   *time.Duration
+	Type      CriteriaType
+	Target    interface{}
+	Threshold float64
+	TimeLimit *time.Duration
 }
 
 // CriteriaType defines success measurement
@@ -397,42 +397,42 @@ type IntelligenceData struct {
 
 // EnemyUnitInfo contains information about enemy forces
 type EnemyUnitInfo struct {
-	ID           string
-	Type         types.UnitType
-	LastSeen     time.Time
-	Position     types.Position
-	Status       types.UnitState
-	ThreatLevel  float64
-	Confidence   float64 // How sure we are about this info
+	ID          string
+	Type        types.UnitType
+	LastSeen    time.Time
+	Position    types.Position
+	Status      types.UnitState
+	ThreatLevel float64
+	Confidence  float64 // How sure we are about this info
 }
 
 // FriendlyUnitInfo contains information about friendly forces
 type FriendlyUnitInfo struct {
-	ID       string
-	Type     types.UnitType
-	Position types.Position
-	Status   types.UnitState
-	Health   float64
+	ID          string
+	Type        types.UnitType
+	Position    types.Position
+	Status      types.UnitState
+	Health      float64
 	LastContact time.Time
 }
 
 // TerrainIntel contains terrain and environmental information
 type TerrainIntel struct {
-	CoverPositions   []types.Position
-	Chokepoints      []types.Position
-	HighGround       []types.Position
-	Hazards          []HazardInfo
-	VisibilityAreas  []VisibilityArea
+	CoverPositions  []types.Position
+	Chokepoints     []types.Position
+	HighGround      []types.Position
+	Hazards         []HazardInfo
+	VisibilityAreas []VisibilityArea
 }
 
 // ThreatInfo represents identified threats
 type ThreatInfo struct {
-	ID          string
-	Type        ThreatType
-	Position    types.Position
-	Severity    float64
-	TimeWindow  time.Duration
-	Confidence  float64
+	ID         string
+	Type       ThreatType
+	Position   types.Position
+	Severity   float64
+	TimeWindow time.Duration
+	Confidence float64
 }
 
 // ThreatType categorizes different threats
@@ -448,11 +448,11 @@ const (
 
 // OpportunityInfo represents tactical opportunities
 type OpportunityInfo struct {
-	ID          string
-	Type        OpportunityType
-	Position    types.Position
-	Value       float64
-	TimeWindow  time.Duration
+	ID           string
+	Type         OpportunityType
+	Position     types.Position
+	Value        float64
+	TimeWindow   time.Duration
 	Requirements []string
 }
 
@@ -525,14 +525,14 @@ func (c *Commander) decisionLoop() {
 // UnitGroup represents a group of units under unified command
 // LEARNING: Group coordination and management
 type UnitGroup struct {
-	mu      sync.RWMutex
-	id      string
-	units   map[string]*types.Unit
-	leader  *types.Unit        // Optional group leader
+	mu        sync.RWMutex
+	id        string
+	units     map[string]*types.Unit
+	leader    *types.Unit // Optional group leader
 	formation Formation
 
 	// Group objectives and orders
-	currentOrders []Command
+	currentOrders  []Command
 	groupObjective *Objective
 
 	// Coordination
@@ -625,10 +625,10 @@ const (
 
 // GroupCommunicator handles group-level communications
 type GroupCommunicator struct {
-	group          *UnitGroup
-	frequency      float64
-	encryptionKey  []byte
-	commLog        []CommunicationRecord
+	group         *UnitGroup
+	frequency     float64
+	encryptionKey []byte
+	commLog       []CommunicationRecord
 }
 
 // CommunicationRecord logs communications for analysis
@@ -660,21 +660,21 @@ type DecisionAlgorithm interface {
 
 // SituationAssessment contains all information relevant to a decision
 type SituationAssessment struct {
-	CurrentMission   *Mission
-	Intelligence     *IntelligenceData
-	AvailableUnits   []*types.Unit
-	Resources        map[string]int
-	TimeConstraints  []TimeConstraint
-	Threats          []ThreatInfo
-	Opportunities    []OpportunityInfo
+	CurrentMission  *Mission
+	Intelligence    *IntelligenceData
+	AvailableUnits  []*types.Unit
+	Resources       map[string]int
+	TimeConstraints []TimeConstraint
+	Threats         []ThreatInfo
+	Opportunities   []OpportunityInfo
 }
 
 // Decision represents a decision made by the decision engine
 type Decision struct {
-	Type        DecisionType
-	Commands    []Command
-	Rationale   string
-	Confidence  float64
+	Type         DecisionType
+	Commands     []Command
+	Rationale    string
+	Confidence   float64
 	Alternatives []Alternative
 }
 
@@ -697,17 +697,17 @@ type Alternative struct {
 
 // DecisionRecord tracks decision outcomes for learning
 type DecisionRecord struct {
-	Decision    Decision
-	Situation   SituationAssessment
-	Outcome     DecisionOutcome
-	Timestamp   time.Time
+	Decision  Decision
+	Situation SituationAssessment
+	Outcome   DecisionOutcome
+	Timestamp time.Time
 }
 
 // DecisionOutcome tracks how well a decision worked
 type DecisionOutcome struct {
-	Success     bool
-	Effectiveness float64
-	Consequences []string
+	Success        bool
+	Effectiveness  float64
+	Consequences   []string
 	LessonsLearned []string
 }
 
@@ -721,13 +721,13 @@ type TacticalAI interface {
 
 // TacticalOption represents a tactical choice
 type TacticalOption struct {
-	ID          string
-	Type        TacticalType
-	Description string
-	Commands    []Command
+	ID           string
+	Type         TacticalType
+	Description  string
+	Commands     []Command
 	Requirements []string
-	Risk        float64
-	Reward      float64
+	Risk         float64
+	Reward       float64
 }
 
 // TacticalType categorizes tactical options
@@ -743,9 +743,9 @@ const (
 
 // ScoredOption represents an evaluated tactical option
 type ScoredOption struct {
-	Option TacticalOption
-	Score  float64
-	Risk   float64
+	Option      TacticalOption
+	Score       float64
+	Risk        float64
 	Feasibility float64
 }
 
@@ -795,12 +795,12 @@ func (c *Commander) GetPerformanceMetrics() CommanderMetrics {
 
 // CommanderMetrics contains performance statistics
 type CommanderMetrics struct {
-	CommandsIssued    int
-	CommandsCompleted int
-	AverageResponse   time.Duration
-	MissionSuccess    float64
+	CommandsIssued          int
+	CommandsCompleted       int
+	AverageResponse         time.Duration
+	MissionSuccess          float64
 	CommunicationEfficiency float64
-	DecisionAccuracy  float64
+	DecisionAccuracy        float64
 }
 
 // Shutdown gracefully stops the commander
@@ -829,3 +829,4 @@ func (c *Commander) Shutdown(timeout time.Duration) error {
 // - Handle communication failures gracefully
 // - Design for scalability and fault tolerance
 // - Implement comprehensive logging and metrics
+

@@ -4,12 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math/rand"
 	"sync"
 	"time"
 
-	"github.com/AdonaIsium/stacraft_concurrency_war_claude/internal/resources"
-	"github.com/AdonaIsium/stacraft_concurrency_war_claude/internal/types"
+	"github.com/AdonaIsium/sc_concurrency_challenge_personal/internal/resources"
 )
 
 // LEARNING NOTE: This example demonstrates:
@@ -401,3 +399,4 @@ func runPriorityInversionScenario(ctx context.Context, rm *resources.ResourceMan
 // - Distributed resource coordination
 // - Predictive systems
 // - Observability and monitoring
+

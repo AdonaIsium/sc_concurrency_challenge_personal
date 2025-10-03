@@ -2,11 +2,10 @@ package units
 
 import (
 	"context"
-	"math/rand"
 	"sync"
 	"time"
 
-	"github.com/AdonaIsium/stacraft_concurrency_war_claude/internal/types"
+	"github.com/AdonaIsium/sc_concurrency_challenge_personal/internal/types"
 )
 
 // LEARNING NOTE: AI system demonstrates:
@@ -19,17 +18,17 @@ import (
 // LEARNING: Centralized AI with distributed execution
 type AIController struct {
 	mu         sync.RWMutex
-	strategies map[string]types.Strategy  // Strategy per unit ID
+	strategies map[string]types.Strategy // Strategy per unit ID
 	decisions  chan AIDecision           // LEARNING: Decision queue for processing
 
 	// Behavior state tracking
 	behaviorStates map[string]*BehaviorState
 
 	// AI processing
-	ctx       context.Context
-	cancel    context.CancelFunc
-	wg        *sync.WaitGroup
-	isActive  bool
+	ctx      context.Context
+	cancel   context.CancelFunc
+	wg       *sync.WaitGroup
+	isActive bool
 
 	// Configuration
 	decisionInterval time.Duration // How often AI makes decisions
@@ -43,12 +42,12 @@ type AIController struct {
 // AIDecision represents a decision made by AI for a unit
 // LEARNING: Command pattern for AI decisions
 type AIDecision struct {
-	UnitID      string
-	Decision    DecisionType
-	Parameters  interface{}
-	Priority    int
-	Timestamp   time.Time
-	StrategyID  string
+	UnitID     string
+	Decision   DecisionType
+	Parameters interface{}
+	Priority   int
+	Timestamp  time.Time
+	StrategyID string
 }
 
 // DecisionType represents different AI decisions
@@ -93,21 +92,21 @@ type BehaviorState struct {
 type AIState int
 
 const (
-	Scanning AIState = iota    // Looking for targets/threats
+	Scanning   AIState = iota // Looking for targets/threats
 	Engaging                  // In combat
-	Retreating               // Withdrawing from danger
-	Regrouping              // Moving to formation
-	Patrolling              // Following patrol route
-	Defending               // Protecting an area/unit
-	Pursuing                // Chasing fleeing enemies
-	Ambushing              // Waiting in concealment
+	Retreating                // Withdrawing from danger
+	Regrouping                // Moving to formation
+	Patrolling                // Following patrol route
+	Defending                 // Protecting an area/unit
+	Pursuing                  // Chasing fleeing enemies
+	Ambushing                 // Waiting in concealment
 	// TODO: Add states like Flanking, Supporting, Besieging
 )
 
 // ActionResult represents the outcome of an AI action
 type ActionResult struct {
 	Success   bool
-	Damage    int  // Damage dealt or taken
+	Damage    int // Damage dealt or taken
 	Timestamp time.Time
 	Notes     string
 }
@@ -248,31 +247,31 @@ func (aic *AIController) GatherSituationalAwareness(unitID string) *SituationalD
 
 // SituationalData contains environmental information for AI decisions
 type SituationalData struct {
-	Unit           *types.Unit
-	NearbyEnemies  []*types.Unit
-	NearbyAllies   []*types.Unit
-	Threats        []ThreatAssessment
-	Opportunities  []Opportunity
-	TerrainFeatures []TerrainFeature
+	Unit             *types.Unit
+	NearbyEnemies    []*types.Unit
+	NearbyAllies     []*types.Unit
+	Threats          []ThreatAssessment
+	Opportunities    []Opportunity
+	TerrainFeatures  []TerrainFeature
 	CurrentObjective *Objective
 }
 
 // ThreatAssessment represents a potential danger
 type ThreatAssessment struct {
-	Source     *types.Unit
-	ThreatLevel float64  // 0.0 to 1.0
-	Distance   float64
-	CanReach   bool     // Can this threat reach our unit?
+	Source      *types.Unit
+	ThreatLevel float64 // 0.0 to 1.0
+	Distance    float64
+	CanReach    bool // Can this threat reach our unit?
 	TimeToReach time.Duration
 }
 
 // Opportunity represents a tactical opportunity
 type Opportunity struct {
-	Type        OpportunityType
-	Target      *types.Unit
-	Confidence  float64  // How sure we are this is a good opportunity
-	TimeWindow  time.Duration // How long this opportunity will last
-	RequiredResources []string // What's needed to exploit this
+	Type              OpportunityType
+	Target            *types.Unit
+	Confidence        float64       // How sure we are this is a good opportunity
+	TimeWindow        time.Duration // How long this opportunity will last
+	RequiredResources []string      // What's needed to exploit this
 }
 
 // OpportunityType represents different tactical opportunities
@@ -289,10 +288,10 @@ const (
 
 // TerrainFeature represents notable terrain elements
 type TerrainFeature struct {
-	Position     types.Position
-	Type         TerrainType
-	CoverValue   float64 // How much protection it provides
-	Accessible   bool    // Can units move through/to it
+	Position   types.Position
+	Type       TerrainType
+	CoverValue float64 // How much protection it provides
+	Accessible bool    // Can units move through/to it
 }
 
 // TerrainType represents different terrain features
@@ -308,11 +307,11 @@ const (
 
 // Objective represents strategic goals
 type Objective struct {
-	ID          string
-	Type        ObjectiveType
-	Position    types.Position
-	Priority    int
-	Deadline    time.Time
+	ID           string
+	Type         ObjectiveType
+	Position     types.Position
+	Priority     int
+	Deadline     time.Time
 	Requirements []string
 }
 
@@ -333,8 +332,8 @@ const (
 // AggressiveStrategy implements an aggressive attack strategy
 // LEARNING: Strategy pattern implementation
 type AggressiveStrategy struct {
-	name            string
-	engagementRange float64
+	name             string
+	engagementRange  float64
 	retreatThreshold float64 // Health percentage to retreat
 }
 
@@ -365,9 +364,9 @@ func (as *AggressiveStrategy) GetName() string {
 
 // DefensiveStrategy implements a defensive strategy
 type DefensiveStrategy struct {
-	name           string
-	defendPosition types.Position
-	defendRadius   float64
+	name             string
+	defendPosition   types.Position
+	defendRadius     float64
 	fallbackPosition types.Position
 }
 
@@ -431,23 +430,23 @@ type BattlefieldMap struct {
 	mu       sync.RWMutex
 	width    float64
 	height   float64
-	grid     [][]MapCell    // 2D grid for spatial queries
-	gridSize float64        // Size of each grid cell
+	grid     [][]MapCell // 2D grid for spatial queries
+	gridSize float64     // Size of each grid cell
 
 	// Cached spatial data
-	coverPoints    []types.Position
-	chokePoints    []types.Position
-	highGround     []types.Position
-	lastUpdated    time.Time
+	coverPoints []types.Position
+	chokePoints []types.Position
+	highGround  []types.Position
+	lastUpdated time.Time
 }
 
 // MapCell represents one cell in the battlefield grid
 type MapCell struct {
-	Position    types.Position
-	Terrain     TerrainType
-	CoverValue  float64
-	Visibility  float64  // How visible this cell is
-	Units       []*types.Unit // Units currently in this cell
+	Position   types.Position
+	Terrain    TerrainType
+	CoverValue float64
+	Visibility float64       // How visible this cell is
+	Units      []*types.Unit // Units currently in this cell
 }
 
 // NewBattlefieldMap creates a new battlefield map
@@ -502,3 +501,4 @@ func (aic *AIController) Shutdown(timeout time.Duration) error {
 // - Strategy pattern allows for different AI personalities
 // - Performance tracking enables AI improvement over time
 // - Context cancellation should propagate through all AI operations
+

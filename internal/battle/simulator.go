@@ -2,11 +2,10 @@ package battle
 
 import (
 	"context"
-	"math/rand"
 	"sync"
 	"time"
 
-	"github.com/AdonaIsium/stacraft_concurrency_war_claude/internal/types"
+	"github.com/AdonaIsium/sc_concurrency_challenge_personal/internal/types"
 )
 
 // LEARNING NOTE: Battle Simulation demonstrates:
@@ -19,22 +18,22 @@ import (
 // BattleSimulator orchestrates complex multi-unit battles
 // LEARNING: Central coordinator for distributed real-time simulation
 type BattleSimulator struct {
-	mu       sync.RWMutex
-	battles  map[string]*types.Battle
+	mu      sync.RWMutex
+	battles map[string]*types.Battle
 
 	// Event processing pipeline
-	eventQueue    chan BattleEvent       // LEARNING: Event queue for processing
-	eventProcessor *EventProcessor       // Processes events into state changes
-	eventLogger   *EventLogger          // Records events for replay/analysis
+	eventQueue     chan BattleEvent // LEARNING: Event queue for processing
+	eventProcessor *EventProcessor  // Processes events into state changes
+	eventLogger    *EventLogger     // Records events for replay/analysis
 
 	// Real-time processing
-	tickRate      time.Duration          // Simulation tick interval
-	ticker        *time.Ticker
-	gameTime      time.Duration          // Current simulation time
+	tickRate time.Duration // Simulation tick interval
+	ticker   *time.Ticker
+	gameTime time.Duration // Current simulation time
 
 	// Battle coordination
-	battleResults chan BattleResult      // Results from completed battles
-	observers     []chan SimulatorEvent  // External observers
+	battleResults chan BattleResult     // Results from completed battles
+	observers     []chan SimulatorEvent // External observers
 
 	// Lifecycle management
 	ctx       context.Context
@@ -46,13 +45,13 @@ type BattleSimulator struct {
 // BattleEvent represents something that happens during battle
 // LEARNING: Event-driven architecture for real-time systems
 type BattleEvent struct {
-	ID        string                 // Unique event ID
-	Type      BattleEventType        // What kind of event
-	BattleID  string                 // Which battle this belongs to
-	Timestamp time.Duration          // When in simulation time
-	Actors    []string               // Units involved in this event
-	Data      interface{}            // Event-specific data
-	Priority  int                    // Processing priority (higher = more urgent)
+	ID        string          // Unique event ID
+	Type      BattleEventType // What kind of event
+	BattleID  string          // Which battle this belongs to
+	Timestamp time.Duration   // When in simulation time
+	Actors    []string        // Units involved in this event
+	Data      interface{}     // Event-specific data
+	Priority  int             // Processing priority (higher = more urgent)
 }
 
 // BattleEventType represents different types of battle events
@@ -85,23 +84,23 @@ const (
 
 // BattleResult represents the outcome of a completed battle
 type BattleResult struct {
-	BattleID    string
-	Winner      string               // Faction that won
-	Duration    time.Duration        // How long the battle lasted
-	Casualties  map[string]int       // Losses by faction
-	Statistics  BattleStatistics     // Detailed battle statistics
-	Events      []BattleEvent        // Complete event log
-	Timestamp   time.Time           // When battle completed
+	BattleID   string
+	Winner     string           // Faction that won
+	Duration   time.Duration    // How long the battle lasted
+	Casualties map[string]int   // Losses by faction
+	Statistics BattleStatistics // Detailed battle statistics
+	Events     []BattleEvent    // Complete event log
+	Timestamp  time.Time        // When battle completed
 }
 
 // BattleStatistics contains detailed battle analytics
 type BattleStatistics struct {
-	TotalDamageDealt   map[string]int  // Damage by faction
-	ShotsAccuracy      map[string]float64 // Hit rate by faction
-	UnitsLost          map[string]map[types.UnitType]int
-	TerrainAdvantage   map[string]float64
-	TacticalEvents     []TacticalEvent
-	EfficiencyScore    map[string]float64 // Overall performance score
+	TotalDamageDealt map[string]int     // Damage by faction
+	ShotsAccuracy    map[string]float64 // Hit rate by faction
+	UnitsLost        map[string]map[types.UnitType]int
+	TerrainAdvantage map[string]float64
+	TacticalEvents   []TacticalEvent
+	EfficiencyScore  map[string]float64 // Overall performance score
 }
 
 // TacticalEvent represents significant tactical moments
@@ -184,21 +183,21 @@ func (bs *BattleSimulator) CreateBattle(config BattleConfig) (*types.Battle, err
 
 // BattleConfig contains configuration for a new battle
 type BattleConfig struct {
-	ID           string                    // Optional custom ID
-	Attackers    []*types.Unit            // Attacking units
-	Defenders    []*types.Unit            // Defending units
-	Battlefield  types.Rectangle          // Battle area
-	Objectives   []BattleObjective        // Win conditions
-	TimeLimit    time.Duration            // Max battle duration
-	Environment  EnvironmentConfig        // Weather, terrain, etc.
-	Rules        BattleRules              // Special rules for this battle
+	ID          string            // Optional custom ID
+	Attackers   []*types.Unit     // Attacking units
+	Defenders   []*types.Unit     // Defending units
+	Battlefield types.Rectangle   // Battle area
+	Objectives  []BattleObjective // Win conditions
+	TimeLimit   time.Duration     // Max battle duration
+	Environment EnvironmentConfig // Weather, terrain, etc.
+	Rules       BattleRules       // Special rules for this battle
 }
 
 // BattleObjective represents win conditions
 type BattleObjective struct {
 	Type        ObjectiveType
-	Target      interface{}  // Specific target (position, unit, etc.)
-	Points      int         // Points awarded for completion
+	Target      interface{}   // Specific target (position, unit, etc.)
+	Points      int           // Points awarded for completion
 	TimeLimit   time.Duration // Time limit for this objective
 	Description string
 }
@@ -218,7 +217,7 @@ const (
 // EnvironmentConfig defines battle environment
 type EnvironmentConfig struct {
 	Weather     WeatherType
-	Visibility  float64      // 0.0 to 1.0
+	Visibility  float64 // 0.0 to 1.0
 	TerrainType TerrainType
 	Hazards     []EnvironmentalHazard
 }
@@ -265,11 +264,11 @@ const (
 
 // BattleRules defines special rules for battles
 type BattleRules struct {
-	FriendlyFire    bool              // Can units damage allies?
-	Reinforcements  bool              // Are reinforcements allowed?
-	SpecialAbilities bool             // Can units use special abilities?
-	TimeScale       float64           // Speed multiplier for simulation
-	PauseOnObjective bool             // Pause when objectives are met?
+	FriendlyFire     bool    // Can units damage allies?
+	Reinforcements   bool    // Are reinforcements allowed?
+	SpecialAbilities bool    // Can units use special abilities?
+	TimeScale        float64 // Speed multiplier for simulation
+	PauseOnObjective bool    // Pause when objectives are met?
 }
 
 // JoinBattle adds units to an existing battle
@@ -310,13 +309,13 @@ func (bs *BattleSimulator) GetBattleStatus(battleID string) (*BattleStatus, erro
 
 // BattleStatus represents current battle state
 type BattleStatus struct {
-	ID              string
-	State           BattleState
-	Duration        time.Duration
-	Participants    map[string][]*types.Unit // Units by faction
-	Objectives      []ObjectiveStatus
-	LastEvent       BattleEvent
-	Statistics      BattleStatistics
+	ID           string
+	State        BattleState
+	Duration     time.Duration
+	Participants map[string][]*types.Unit // Units by faction
+	Objectives   []ObjectiveStatus
+	LastEvent    BattleEvent
+	Statistics   BattleStatistics
 }
 
 // BattleState represents the current state of a battle
@@ -332,10 +331,10 @@ const (
 
 // ObjectiveStatus shows progress on battle objectives
 type ObjectiveStatus struct {
-	Objective BattleObjective
-	Progress  float64  // 0.0 to 1.0
-	Completed bool
-	CompletedBy string // Which faction completed it
+	Objective      BattleObjective
+	Progress       float64 // 0.0 to 1.0
+	Completed      bool
+	CompletedBy    string // Which faction completed it
 	CompletionTime time.Duration
 }
 
@@ -492,11 +491,11 @@ func (ep *EventProcessor) RegisterHandler(handler EventHandler) {
 // EventLogger records events for replay and analysis
 // LEARNING: Event sourcing pattern for debugging
 type EventLogger struct {
-	mu          sync.RWMutex
-	eventLog    map[string][]BattleEvent // Events by battle ID
-	maxEvents   int                      // Maximum events to keep per battle
-	logToFile   bool
-	logFile     string
+	mu        sync.RWMutex
+	eventLog  map[string][]BattleEvent // Events by battle ID
+	maxEvents int                      // Maximum events to keep per battle
+	logToFile bool
+	logFile   string
 }
 
 // NewEventLogger creates a new event logger
@@ -522,9 +521,9 @@ func (el *EventLogger) GetEventLog(battleID string) []BattleEvent {
 // BattleAnalyzer provides post-battle analysis
 // LEARNING: Data analysis of concurrent system behavior
 type BattleAnalyzer struct {
-	eventLog    []BattleEvent
+	eventLog     []BattleEvent
 	participants map[string][]*types.Unit
-	statistics  BattleStatistics
+	statistics   BattleStatistics
 }
 
 // AnalyzeBattle performs comprehensive battle analysis
@@ -541,12 +540,12 @@ func AnalyzeBattle(result BattleResult) *BattleAnalysis {
 
 // BattleAnalysis contains detailed battle analysis
 type BattleAnalysis struct {
-	OverallAssessment string
+	OverallAssessment   string
 	StrengthsWeaknesses map[string][]string // By faction
-	CriticalMoments   []TacticalEvent
-	Recommendations   []string
-	PerformanceScores map[string]float64
-	EfficiencyMetrics map[string]interface{}
+	CriticalMoments     []TacticalEvent
+	Recommendations     []string
+	PerformanceScores   map[string]float64
+	EfficiencyMetrics   map[string]interface{}
 }
 
 // BattleReplayer can replay battles from event logs
@@ -604,3 +603,4 @@ func (bs *BattleSimulator) Shutdown(timeout time.Duration) error {
 // - Design for extensibility with pluggable handlers
 // - Handle graceful degradation under high load
 // - Provide rich analytics and replay capabilities
+

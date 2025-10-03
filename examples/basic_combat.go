@@ -7,9 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/AdonaIsium/stacraft_concurrency_war_claude/internal/types"
-	"github.com/AdonaIsium/stacraft_concurrency_war_claude/internal/units"
-	"github.com/AdonaIsium/stacraft_concurrency_war_claude/internal/battle"
+	"github.com/AdonaIsium/sc_concurrency_challenge_personal/internal/battle"
+	"github.com/AdonaIsium/sc_concurrency_challenge_personal/internal/types"
 )
 
 // LEARNING NOTE: This example demonstrates:
@@ -350,3 +349,4 @@ func formatTime(t time.Time) string {
 // - Resource coordination
 // - Real-time processing
 // - Complex system interactions
+

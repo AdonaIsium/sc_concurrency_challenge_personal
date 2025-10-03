@@ -1,0 +1,342 @@
+{
+  "SCV": {
+    "maxHealth": 60,
+    "baseDamage": 5,
+    "baseArmor": 0,
+    "armorModifier": 1,
+    "attackModifier": 0,
+    "attackRange": 1,
+    "visionRange": 7,
+    "elevationLayer": "Ground"
+  },
+  "Marine": {
+    "maxHealth": 40,
+    "baseDamage": 6,
+    "baseArmor": 0,
+    "armorModifier": 1,
+    "attackModifier": 1,
+    "attackRange": 4,
+    "visionRange": 7,
+    "elevationLayer": "Ground"
+  },
+  "Firebat": {
+    "maxHealth": 50,
+    "baseDamage": 16,
+    "baseArmor": 1,
+    "armorModifier": 1,
+    "attackModifier": 1,
+    "attackRange": 2,
+    "visionRange": 7,
+    "elevationLayer": "Ground"
+  },
+  "Medic": {
+    "maxHealth": 60,
+    "baseDamage": 0,
+    "baseArmor": 1,
+    "armorModifier": 1,
+    "attackModifier": 0,
+    "attackRange": 0,
+    "visionRange": 9,
+    "elevationLayer": "Ground"
+  },
+  "Vulture": {
+    "maxHealth": 80,
+    "baseDamage": 20,
+    "baseArmor": 0,
+    "armorModifier": 1,
+    "attackModifier": 2,
+    "attackRange": 5,
+    "visionRange": 8,
+    "elevationLayer": "Ground"
+  },
+  "SiegeTank": {
+    "maxHealth": 150,
+    "baseDamage": 30,
+    "baseArmor": 1,
+    "armorModifier": 1,
+    "attackModifier": 3,
+    "attackRange": 7,
+    "visionRange": 10,
+    "elevationLayer": "Ground"
+  },
+  "Goliath": {
+    "maxHealth": 125,
+    "baseDamage": 12,
+    "baseArmor": 1,
+    "armorModifier": 1,
+    "attackModifier": 1,
+    "attackRange": 6,
+    "visionRange": 8,
+    "elevationLayer": "Ground"
+  },
+  "Wraith": {
+    "maxHealth": 120,
+    "baseDamage": 20,
+    "baseArmor": 0,
+    "armorModifier": 1,
+    "attackModifier": 2,
+    "attackRange": 5,
+    "visionRange": 7,
+    "elevationLayer": "Air"
+  },
+  "DropShip": {
+    "maxHealth": 150,
+    "baseDamage": 0,
+    "baseArmor": 1,
+    "armorModifier": 1,
+    "attackModifier": 0,
+    "attackRange": 0,
+    "visionRange": 8,
+    "elevationLayer": "Air"
+  },
+  "Valkyrie": {
+    "maxHealth": 200,
+    "baseDamage": 24,
+    "baseArmor": 2,
+    "armorModifier": 1,
+    "attackModifier": 1,
+    "attackRange": 6,
+    "visionRange": 8,
+    "elevationLayer": "Air"
+  },
+  "ScienceVessel": {
+    "maxHealth": 200,
+    "baseDamage": 0,
+    "baseArmor": 1,
+    "armorModifier": 1,
+    "attackModifier": 0,
+    "attackRange": 0,
+    "visionRange": 10,
+    "elevationLayer": "Air"
+  },
+  "Battlecruiser": {
+    "maxHealth": 500,
+    "baseDamage": 25,
+    "baseArmor": 3,
+    "armorModifier": 1,
+    "attackModifier": 3,
+    "attackRange": 6,
+    "visionRange": 11,
+    "elevationLayer": "Air"
+  },
+  "Drone": {
+    "maxHealth": 40,
+    "baseDamage": 5,
+    "baseArmor": 0,
+    "armorModifier": 1,
+    "attackModifier": 0,
+    "attackRange": 1,
+    "visionRange": 7,
+    "elevationLayer": "Ground"
+  },
+  "Overlord": {
+    "maxHealth": 200,
+    "baseDamage": 0,
+    "baseArmor": 0,
+    "armorModifier": 1,
+    "attackModifier": 0,
+    "attackRange": 0,
+    "visionRange": 9,
+    "elevationLayer": "Air"
+  },
+  "Zergling": {
+    "maxHealth": 35,
+    "baseDamage": 5,
+    "baseArmor": 0,
+    "armorModifier": 1,
+    "attackModifier": 1,
+    "attackRange": 1,
+    "visionRange": 5,
+    "elevationLayer": "Ground"
+  },
+  "Hydralisk": {
+    "maxHealth": 80,
+    "baseDamage": 10,
+    "baseArmor": 0,
+    "armorModifier": 1,
+    "attackModifier": 1,
+    "attackRange": 4,
+    "visionRange": 6,
+    "elevationLayer": "Ground"
+  },
+  "Lurker": {
+    "maxHealth": 125,
+    "baseDamage": 20,
+    "baseArmor": 1,
+    "armorModifier": 1,
+    "attackModifier": 2,
+    "attackRange": 6,
+    "visionRange": 8,
+    "elevationLayer": "Ground"
+  },
+  "Mutalisk": {
+    "maxHealth": 120,
+    "baseDamage": 9,
+    "baseArmor": 0,
+    "armorModifier": 1,
+    "attackModifier": 1,
+    "attackRange": 3,
+    "visionRange": 7,
+    "elevationLayer": "Air"
+  },
+  "Guardian": {
+    "maxHealth": 150,
+    "baseDamage": 20,
+    "baseArmor": 2,
+    "armorModifier": 1,
+    "attackModifier": 2,
+    "attackRange": 8,
+    "visionRange": 10,
+    "elevationLayer": "Air"
+  },
+  "Devourer": {
+    "maxHealth": 250,
+    "baseDamage": 25,
+    "baseArmor": 2,
+    "armorModifier": 1,
+    "attackModifier": 2,
+    "attackRange": 6,
+    "visionRange": 10,
+    "elevationLayer": "Air"
+  },
+  "Queen": {
+    "maxHealth": 120,
+    "baseDamage": 0,
+    "baseArmor": 0,
+    "armorModifier": 1,
+    "attackModifier": 0,
+    "attackRange": 0,
+    "visionRange": 10,
+    "elevationLayer": "Air"
+  },
+  "Ultralisk": {
+    "maxHealth": 400,
+    "baseDamage": 20,
+    "baseArmor": 1,
+    "armorModifier": 1,
+    "attackModifier": 3,
+    "attackRange": 1,
+    "visionRange": 7,
+    "elevationLayer": "Ground"
+  },
+  "Defiler": {
+    "maxHealth": 80,
+    "baseDamage": 0,
+    "baseArmor": 1,
+    "armorModifier": 1,
+    "attackModifier": 0,
+    "attackRange": 0,
+    "visionRange": 10,
+    "elevationLayer": "Ground"
+  },
+  "Probe": {
+    "maxHealth": 20,
+    "baseDamage": 5,
+    "baseArmor": 0,
+    "armorModifier": 1,
+    "attackModifier": 0,
+    "attackRange": 1,
+    "visionRange": 8,
+    "elevationLayer": "Ground"
+  },
+  "Zealot": {
+    "maxHealth": 100,
+    "baseDamage": 16,
+    "baseArmor": 1,
+    "armorModifier": 1,
+    "attackModifier": 1,
+    "attackRange": 1,
+    "visionRange": 7,
+    "elevationLayer": "Ground"
+  },
+  "Dragoon": {
+    "maxHealth": 100,
+    "baseDamage": 20,
+    "baseArmor": 1,
+    "armorModifier": 1,
+    "attackModifier": 2,
+    "attackRange": 4,
+    "visionRange": 8,
+    "elevationLayer": "Ground"
+  },
+  "Templar": {
+    "maxHealth": 40,
+    "baseDamage": 0,
+    "baseArmor": 0,
+    "armorModifier": 1,
+    "attackModifier": 0,
+    "attackRange": 0,
+    "visionRange": 7,
+    "elevationLayer": "Ground"
+  },
+  "DarkTemplar": {
+    "maxHealth": 80,
+    "baseDamage": 40,
+    "baseArmor": 1,
+    "armorModifier": 1,
+    "attackModifier": 3,
+    "attackRange": 1,
+    "visionRange": 7,
+    "elevationLayer": "Ground"
+  },
+  "Shuttle": {
+    "maxHealth": 80,
+    "baseDamage": 0,
+    "baseArmor": 1,
+    "armorModifier": 1,
+    "attackModifier": 0,
+    "attackRange": 0,
+    "visionRange": 8,
+    "elevationLayer": "Air"
+  },
+  "Reaver": {
+    "maxHealth": 100,
+    "baseDamage": 100,
+    "baseArmor": 0,
+    "armorModifier": 1,
+    "attackModifier": 25,
+    "attackRange": 8,
+    "visionRange": 10,
+    "elevationLayer": "Ground"
+  },
+  "Observer": {
+    "maxHealth": 40,
+    "baseDamage": 0,
+    "baseArmor": 0,
+    "armorModifier": 1,
+    "attackModifier": 0,
+    "attackRange": 0,
+    "visionRange": 9,
+    "elevationLayer": "Air"
+  },
+  "Corsair": {
+    "maxHealth": 100,
+    "baseDamage": 25,
+    "baseArmor": 1,
+    "armorModifier": 1,
+    "attackModifier": 1,
+    "attackRange": 5,
+    "visionRange": 9,
+    "elevationLayer": "Air"
+  },
+  "Carrier": {
+    "maxHealth": 300,
+    "baseDamage": 48,
+    "baseArmor": 4,
+    "armorModifier": 1,
+    "attackModifier": 1,
+    "attackRange": 8,
+    "visionRange": 11,
+    "elevationLayer": "Air"
+  },
+  "Arbiter": {
+    "maxHealth": 200,
+    "baseDamage": 10,
+    "baseArmor": 1,
+    "armorModifier": 1,
+    "attackModifier": 1,
+    "attackRange": 5,
+    "visionRange": 9,
+    "elevationLayer": "Air"
+  }
+}

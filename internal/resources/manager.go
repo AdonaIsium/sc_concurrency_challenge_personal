@@ -2,11 +2,10 @@ package resources
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
-	"github.com/AdonaIsium/stacraft_concurrency_war_claude/internal/types"
+	"github.com/AdonaIsium/sc_concurrency_challenge_personal/internal/types"
 )
 
 // LEARNING NOTE: Resource Management demonstrates:
@@ -34,7 +33,7 @@ type ResourceManager struct {
 	generators map[string]*ResourceGenerator
 
 	// Monitoring and notifications
-	listeners    []chan ResourceEvent
+	listeners     []chan ResourceEvent
 	lowThresholds map[string]int // Alert when resource goes below threshold
 
 	// Lifecycle management
@@ -49,7 +48,7 @@ type ResourceManager struct {
 type ResourceTransaction struct {
 	ID        string
 	Type      TransactionType
-	Resources map[string]int        // Resource changes (positive = add, negative = consume)
+	Resources map[string]int // Resource changes (positive = add, negative = consume)
 	Timeout   time.Duration
 	Response  chan TransactionResult
 	Priority  int
@@ -61,37 +60,37 @@ type TransactionType int
 
 const (
 	Allocate TransactionType = iota // Allocate resources (might fail)
-	Reserve                        // Reserve resources (guaranteed allocation)
-	Release                        // Release previously reserved resources
-	Transfer                       // Transfer between resource pools
-	Batch                          // Multiple operations as one transaction
+	Reserve                         // Reserve resources (guaranteed allocation)
+	Release                         // Release previously reserved resources
+	Transfer                        // Transfer between resource pools
+	Batch                           // Multiple operations as one transaction
 )
 
 // TransactionResult represents the outcome of a resource transaction
 type TransactionResult struct {
-	Success     bool
-	Error       error
+	Success            bool
+	Error              error
 	AllocatedResources map[string]int
-	ReservationID string // For reserve operations
-	Timestamp   time.Time
+	ReservationID      string // For reserve operations
+	Timestamp          time.Time
 }
 
 // PendingTransaction tracks ongoing transactions
 type PendingTransaction struct {
-	Transaction ResourceTransaction
-	StartTime   time.Time
+	Transaction       ResourceTransaction
+	StartTime         time.Time
 	ReservedResources map[string]int
-	ExpiresAt   time.Time
+	ExpiresAt         time.Time
 }
 
 // AllocationRecord tracks resource allocation for analysis
 // LEARNING: Audit trail for debugging and optimization
 type AllocationRecord struct {
-	Timestamp  time.Time
-	Requester  string
-	Resources  map[string]int
-	Success    bool
-	Remaining  map[string]int // Remaining after operation
+	Timestamp time.Time
+	Requester string
+	Resources map[string]int
+	Success   bool
+	Remaining map[string]int // Remaining after operation
 }
 
 // ResourceEvent represents resource-related events
@@ -240,13 +239,13 @@ func (rm *ResourceManager) GetResourceInfo(name string) (*ResourceInfo, error) {
 
 // ResourceInfo contains detailed information about a resource
 type ResourceInfo struct {
-	Name           string
-	Current        int
-	Maximum        int
-	Reserved       int    // Currently reserved amount
-	LowThreshold   int
-	GenerationRate float64 // Resources per second
-	LastGenerated  time.Time
+	Name              string
+	Current           int
+	Maximum           int
+	Reserved          int // Currently reserved amount
+	LowThreshold      int
+	GenerationRate    float64 // Resources per second
+	LastGenerated     time.Time
 	AllocationHistory []AllocationRecord
 }
 
@@ -270,10 +269,10 @@ func (rm *ResourceManager) AddResourceListener() <-chan ResourceEvent {
 // ResourceGenerator generates resources over time
 // LEARNING: Producer pattern with rate control
 type ResourceGenerator struct {
-	mu           sync.RWMutex
-	resourceName string
-	rate         float64 // Resources per second
-	isRunning    bool
+	mu            sync.RWMutex
+	resourceName  string
+	rate          float64 // Resources per second
+	isRunning     bool
 	lastGenerated time.Time
 
 	// Control channels
@@ -386,12 +385,12 @@ func (rm *ResourceManager) generatorCoordinator() {
 // RateLimiter controls the rate of resource operations
 // LEARNING: Rate limiting patterns for flow control
 type RateLimiter struct {
-	mu              sync.Mutex
-	tokens          int
-	maxTokens       int
-	refillRate      float64 // Tokens per second
-	lastRefill      time.Time
-	tokenBucket     chan struct{} // Token bucket implementation
+	mu          sync.Mutex
+	tokens      int
+	maxTokens   int
+	refillRate  float64 // Tokens per second
+	lastRefill  time.Time
+	tokenBucket chan struct{} // Token bucket implementation
 }
 
 // NewRateLimiter creates a new rate limiter
@@ -458,21 +457,21 @@ func (rm *ResourceManager) GetStatistics() ResourceStatistics {
 
 // ResourceStatistics contains resource usage analytics
 type ResourceStatistics struct {
-	TotalAllocations   int
-	SuccessfulAllocs   int
-	FailedAllocs       int
-	AverageWaitTime    time.Duration
+	TotalAllocations    int
+	SuccessfulAllocs    int
+	FailedAllocs        int
+	AverageWaitTime     time.Duration
 	ResourceUtilization map[string]float64 // Percentage of max capacity used
-	GenerationRates    map[string]float64
+	GenerationRates     map[string]float64
 	PendingReservations int
-	TopConsumers       []ConsumerStats
+	TopConsumers        []ConsumerStats
 }
 
 // ConsumerStats tracks resource consumption by entity
 type ConsumerStats struct {
-	RequesterID    string
-	TotalConsumed  map[string]int
-	RequestCount   int
+	RequesterID     string
+	TotalConsumed   map[string]int
+	RequestCount    int
 	AverageWaitTime time.Duration
 }
 
@@ -510,3 +509,4 @@ func (rm *ResourceManager) Shutdown(timeout time.Duration) error {
 // - Provide comprehensive error handling
 // - Design for high concurrency scenarios
 // - Implement graceful degradation under contention
+

@@ -2,11 +2,61 @@ package types
 
 import (
 	"context"
+	_ "embed"
+	"encoding/json"
 	"fmt"
+	"log"
 	"math"
 	"sync"
 	"time"
 )
+
+// ═══════════════════════════════════════════════════════════════════════════
+// UNIT STATS DATA - Embedded at Compile Time
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// 🎓 LEARNING: go:embed Directive
+//
+// This is a compile-time feature that embeds external files into your binary.
+// The JSON file is read at BUILD time and baked into the executable.
+//
+// 🎴 MTG ANALOGY: Like having all card data printed on the back of each card.
+// No need to look up the rulebook—the information is right there.
+//
+// ⚔️ SC:BW ANALOGY: Like having unit stats compiled into the game executable
+// instead of loading from external files. Fast, reliable, no I/O overhead.
+//
+// 🔥 PRO TIP FROM FLASH:
+// "In professional games, we compile game data into the binary for tournaments.
+//  Can't have the game failing because a config file is missing!"
+//
+// ═══════════════════════════════════════════════════════════════════════════
+
+//go:embed unit_stats.json
+var unitStatsJSON []byte
+
+// UnitStatsData holds the parsed unit stats for fast lookup
+type UnitStatsData struct {
+	MaxHealth      int    `json:"maxHealth"`
+	BaseDamage     int    `json:"baseDamage"`
+	BaseArmor      int    `json:"baseArmor"`
+	ArmorModifier  int    `json:"armorModifier"`
+	AttackModifier int    `json:"attackModifier"`
+	AttackRange    int    `json:"attackRange"`
+	VisionRange    int    `json:"visionRange"`
+	ElevationLayer string `json:"elevationLayer"`
+}
+
+// unitStatsCache is populated once at startup from the embedded JSON
+var unitStatsCache map[string]UnitStatsData
+
+// init runs once when the package is loaded
+// Parses the embedded JSON into our cache for fast runtime lookups
+func init() {
+	if err := json.Unmarshal(unitStatsJSON, &unitStatsCache); err != nil {
+		log.Fatalf("Failed to load unit stats: %v", err)
+	}
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 🎮 BOOT CAMP - CORE TYPES
@@ -56,15 +106,6 @@ import (
 //
 // 🎴 MTG: Like creature types (Goblin, Elf, Dragon)
 // ⚔️ SC:BW: Marine, Zealot, Zergling, etc.
-//
-// 🤔 BEFORE YOU CODE:
-// Q1: Why use a custom type (UnitType int) instead of just string?
-// Q2: What does iota do in Go constants?
-// Q3: How would you add a new unit type without breaking existing code?
-//
-// 🎯 HINT LEVEL 1: Type safety! Compiler prevents you from assigning "Bob" to a UnitType
-// 🎯 HINT LEVEL 2: iota auto-increments: Marine=0, Zergling=1, Zealot=2, etc.
-// 🎯 HINT LEVEL 3: Add it before unitTypeCount, update unitTypeNames map
 type UnitType int
 
 const (
@@ -102,9 +143,6 @@ const (
 	Corsair
 	Carrier
 	Arbiter
-	// 🏗️ YOUR CHALLENGE: Add 2-3 more unit types here
-	// Consider: Mutalisk, Carrier, Firebat, Dragoon
-	// Remember to update unitTypeNames map below!
 
 	unitTypeCount // Sentinel value for validation
 )
@@ -150,7 +188,6 @@ var unitTypeNames = map[UnitType]string{
 	Corsair:       "Corsair",
 	Carrier:       "Carrier",
 	Arbiter:       "Arbiter",
-	// 🏗️ YOUR CHALLENGE: Add entries for your new unit types
 }
 
 // String implements the fmt.Stringer interface for better debugging
@@ -174,31 +211,6 @@ func (ut UnitType) String() string {
 }
 
 // IsValid checks if a UnitType value is within valid range
-//
-// 🤔 BEFORE YOU CODE:
-// Q1: Why do we need validation? Can't we trust the code?
-// A2: We can trust the code to be as good as it is written!
-//
-//	However, there are always possibilities for bugs or unexpected
-//	states to occur so we want to make sure to implement checks and
-//	balances to test our work.
-//
-// Q2: What if someone does UnitType(999)?
-// A2: Since our list of units is < 999, that would not be valid and would
-//
-//	return false.
-//
-// Q3: How does this prevent bugs in production?
-// A3: It stops our code from ending up in a state that it should not be in
-//
-//	which ensures that we can reliably take any actions on it since its
-//	state is always a known value
-//
-// 🎯 HINT LEVEL 1: Type conversion can bypass const safety
-// 🎯 HINT LEVEL 2: ut >= Marine (minimum) && ut < unitTypeCount (maximum)
-// 🎯 HINT LEVEL 3: See the pattern in String() above
-//
-// ✅ ALREADY IMPLEMENTED (Defensive programming—always validate!)
 func (ut UnitType) IsValid() bool {
 	return ut >= SCV && ut < unitTypeCount
 }
@@ -232,11 +244,6 @@ const (
 	Repairing
 	Building
 	Dead
-	// 🏗️ YOUR CHALLENGE: Add more states
-	// Ideas: Retreating, Repairing, Building, Casting (for abilities)
-	// Consider: What state transitions make sense?
-	//   Idle → Moving ✓
-	//   Dead → Attacking ✗ (invalid!)
 
 	unitStateCount
 )
@@ -253,19 +260,7 @@ var unitStateNames = map[UnitState]string{
 	Repairing:       "Repairing",
 	Building:        "Building",
 	Dead:            "Dead",
-	// 🏗️ YOUR CHALLENGE: Add names for your new states
 }
-
-// 🏗️ YOUR CHALLENGE: Implement String() method for UnitState
-// Follow the exact pattern from UnitType.String() above
-//
-// 🤔 BEFORE YOU CODE:
-// Q: Why is copy-paste sometimes OK in programming?
-// A: Consistent patterns > clever variations. Make it obvious, not clever.
-//
-// 🎯 HINT LEVEL 1: Look at UnitType.String() above—it's identical logic
-// 🎯 HINT LEVEL 2: Change "unitTypeNames" to "unitStateNames"
-// 🎯 HINT LEVEL 3: Here's the template:
 
 func (us UnitState) String() string {
 	if name, ok := unitStateNames[us]; ok {
@@ -274,10 +269,6 @@ func (us UnitState) String() string {
 	return fmt.Sprintf("UnitState(%d)", us)
 }
 
-// 🏗️ YOUR CHALLENGE: Implement IsValid() method for UnitState
-// Follow the pattern from UnitType.IsValid()
-//
-// 🎯 HINT: Replace UnitType with UnitState, Marine with Idle
 func (us UnitState) IsValid() bool {
 	return us >= Idle && us < unitStateCount
 }
@@ -378,52 +369,24 @@ type Position struct {
 }
 
 // Distance calculates the Euclidean distance between two positions
-//
-// 🤔 BEFORE YOU CODE:
-// Q1: What's the formula for distance between two points?
-// Q2: Why use math.Sqrt? Can we avoid it for performance?
-// A2: We have to use it if we want the exact distance between the two units
-// If just comparing distances,
-// Q3: What's "Euclidean distance" vs "Manhattan distance"?
-// A3: Euclidean distance is the direct distance from point X to point Y
-// Manhattan distance is the distance between X and Y if one can only move
-// in grid aligned steps
-//
-// 🎯 HINT LEVEL 1: Pythagorean theorem: a² + b² = c²
-// 🎯 HINT LEVEL 2: sqrt((x2-x1)² + (y2-y1)²)
-// 🎯 HINT LEVEL 3: Use math.Sqrt and math.Pow (or just multiply dx*dx)
-//
-// 🏗️ YOUR CHALLENGE: Implement this method
-// Template:
-
 func (p Position) Distance(other Position) float64 {
 	dx := other.X - p.X
 	dy := other.Y - p.Y
 	return math.Sqrt(dx*dx + dy*dy)
 }
 
-// DistanceSquared returns the squared distance (faster, no sqrt)
+// DistanceSq returns the squared distance (faster, no sqrt)
 //
 // 🔥 PRO TIP FROM FLASH:
 // "In SC:BW, we compare distances constantly (attack range, vision, etc.).
-//  Square root is expensive! If you only need to compare distances,
-//  compare the SQUARED distances instead. Way faster."
 //
-// 🤔 WHY THIS MATTERS:
-// Comparing: dist1 < dist2 is same as: dist1² < dist2²
-// But dist1² is faster to calculate (no sqrt!)
-//
-// 🏗️ YOUR CHALLENGE: Implement DistanceSquared
-// It's like Distance() but without the math.Sqrt() call
-
+//	Square root is expensive! If you only need to compare distances,
+//	compare the SQUARED distances instead. Way faster."
 func (p Position) DistanceSq(other Position) float64 {
 	dx := other.X - p.X
 	dy := other.Y - p.Y
 	return dx*dx + dy*dy
 }
-
-//
-// 🎯 HINT: Just return dx*dx + dy*dy
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SECTION 3: THE UNIT STRUCT (Where Concurrency Begins!)
@@ -481,10 +444,17 @@ type Unit struct {
 	// ═══════════════════════════════════════════════════════════════════════
 	// MUTABLE STATE (Protected by mutex—multiple goroutines access this!)
 	// ═══════════════════════════════════════════════════════════════════════
-	mu             sync.RWMutex   // Protects ALL fields below
-	health         int            // Current health (0 = dead)
-	maxHealth      int            // Maximum health
-	damage         int            // Attack damage
+	mu             sync.RWMutex // Protects ALL fields below
+	health         int          // Current health (0 = dead)
+	maxHealth      int          // Maximum health
+	baseDamage     int          // Attack damage
+	baseArmor      int
+	attackModifier int
+	armorModifier  int
+	attackUpgrades int
+	armorUpgrades  int
+	attackRange    int
+	visionRange    int
 	state          UnitState      // Current state (Idle, Moving, etc.)
 	elevationLayer ElevationLayer // Current Elevation (Burrowed, Flying, Ground)
 	position       Position       // Current position
@@ -493,11 +463,12 @@ type Unit struct {
 	// ═══════════════════════════════════════════════════════════════════════
 	// CONCURRENCY PRIMITIVES (Channels, Context, Coordination)
 	// ═══════════════════════════════════════════════════════════════════════
-	commands chan Command       // Receives commands (attack, move, etc.)
-	events   chan UnitEvent     // Sends events (took damage, killed unit, etc.)
-	ctx      context.Context    // For cancellation/shutdown
-	cancel   context.CancelFunc // Call this to stop the unit's goroutine
-	wg       *sync.WaitGroup    // For coordinated shutdown
+	commands     chan Command       // Receives commands (attack, move, etc.)
+	events       chan UnitEvent     // Sends events (took damage, killed unit, etc.)
+	ctx          context.Context    // For cancellation/shutdown
+	cancel       context.CancelFunc // Call this to stop the unit's goroutine
+	wg           *sync.WaitGroup    // For coordinated shutdown
+	shutdownOnce sync.Once          // Ensures Shutdown only executes once
 }
 
 type Tile struct {
@@ -540,103 +511,105 @@ type Tile struct {
 
 // NewUnit creates a new unit and starts its lifecycle goroutine
 //
-// 🤔 BEFORE YOU CODE - CRITICAL QUESTIONS:
-//
-// Q1: What would happen if we forgot to start the goroutine (go u.run())?
-// Q2: Why do we need to pass a WaitGroup pointer?
-// Q3: What if we create a unit but never cancel its context?
-// Q4: Should we use buffered or unbuffered channels for commands?
-//
-// 🎯 THINK ABOUT IT:
-// A1: Unit would be "created" but never actually run. Like training a Marine
-//     but it never leaves the barracks!
-// A2: For graceful shutdown—we need to wait for ALL units to finish cleanly
-// A3: GOROUTINE LEAK! The go u.run() runs forever, never stops. Memory leak!
-// A4: Unbuffered = sender blocks until processed. Buffered = can queue commands.
-//     What makes sense for game units? (Hint: buffer prevents missed commands)
-//
 // 🔥 PRO TIP FROM JAEDONG:
 // "In Zerg, I queue up commands for my units (attack, move, attack). They
-//  execute them in order. Buffered channel = command queue. Makes sense?"
 //
-// 🏗️ YOUR BIG CHALLENGE: Implement NewUnit
-//
-// You'll need to:
-// 1. Create the Unit struct with initial values
-// 2. Set up context with cancellation
-// 3. Initialize channels (commands, events)
-// 4. Set initial stats based on unit type
-// 5. Start the goroutine
-// 6. Return the unit
-//
-// 🎯 HINT LEVEL 1: Structure your code in the order listed above
-// 🎯 HINT LEVEL 2: Use context.WithCancel(context.Background())
-// 🎯 HINT LEVEL 3: Buffered channels → make(chan Command, 10)
-//
-// Template:
-/*
+//	execute them in order. Buffered channel = command queue. Makes sense?"
 func NewUnit(id string, unitType UnitType, pos Position, wg *sync.WaitGroup) *Unit {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	u := &Unit{
-		ID:   id,
-		Type: unitType,
-		// TODO: Set position
-		// TODO: Set initial state (probably Idle?)
-		// TODO: Create channels
-		// TODO: Store ctx, cancel, wg
+		ID:       id,
+		Type:     unitType,
+		position: pos,
+		state:    Idle,
+
+		commands: make(chan Command, 10),
+		events:   make(chan UnitEvent, 10),
+
+		ctx:    ctx,
+		cancel: cancel,
+		wg:     wg,
 	}
 
-	// TODO: Set stats based on unitType (use switch statement?)
-	// Hint: initializeStats(u, unitType) helper function?
+	initializeStats(u, unitType)
 
-	// TODO: Start goroutine
-	// Hint: wg.Add(1) BEFORE go u.run()
+	wg.Add(1)
+	go u.run()
 
 	return u
 }
-*/
 
-// Helper function to set unit stats based on type
-// 🤔 DESIGN QUESTION: Why extract this to a separate function?
-// A: Single Responsibility Principle. NewUnit creates, this initializes stats.
+// initializeStats loads unit stats from the embedded JSON cache
 //
-// 🏗️ YOUR CHALLENGE: Implement this
-/*
+// 🎓 LEARNING: Data-Driven Design Pattern
+//
+// Instead of hardcoding 250+ lines of switch cases, we:
+// 1. Store data in external JSON file (maintainable!)
+// 2. Embed at compile time (zero runtime I/O overhead!)
+// 3. Parse once at startup in init() (one-time cost)
+// 4. Lookup from map in O(1) time (blazing fast!)
+//
+// 🎴 MTG ANALOGY: Like having all card stats in a database instead of
+// hardcoding each card's P/T, mana cost, and abilities in the game code.
+// MTG Arena does exactly this—thousands of cards, one clean data file.
+//
+// ⚔️ SC:BW ANALOGY: StarCraft stores unit stats in data files, not code.
+// When Blizzard wants to balance a unit (nerf Mutalisk damage), they
+// edit a data file, not recompile the entire game engine!
+//
+// 🔥 PRO TIP FROM FLASH:
+// "In professional play, we analyze unit stats constantly. Having them
+//
+//	in a readable data format makes balance analysis much easier than
+//	digging through game code!"
+//
+// 📊 PERFORMANCE:
+// - Startup: ~2-5ms one-time JSON parse
+// - Runtime: O(1) map lookup, same speed as switch statement
+// - Memory: ~5KB for all 34 unit types
+// - I/O: ZERO (file embedded at compile time)
 func initializeStats(u *Unit, unitType UnitType) {
-	switch unitType {
-	case Marine:
-		u.maxHealth = 40
-		u.health = 40
-		u.damage = 6
-	case Zergling:
-		u.maxHealth = 35
-		u.health = 35
-		u.damage = 5
-	// TODO: Add cases for other unit types
-	// Refer to SC:BW stats or make up balanced numbers!
+	// Lookup stats from our cache (populated by init() at startup)
+	stats, ok := unitStatsCache[unitType.String()]
+	if !ok {
+		// Fallback for unknown unit types (defensive programming)
+		log.Printf("Warning: Unknown unit type %s, using default stats", unitType)
+		stats = UnitStatsData{
+			MaxHealth:      50,
+			BaseDamage:     5,
+			BaseArmor:      0,
+			ArmorModifier:  1,
+			AttackModifier: 0,
+			AttackRange:    4,
+			VisionRange:    7,
+			ElevationLayer: "Ground",
+		}
+	}
+
+	// Apply stats from cache
+	u.maxHealth, u.health = stats.MaxHealth, stats.MaxHealth
+	u.baseDamage = stats.BaseDamage
+	u.baseArmor = stats.BaseArmor
+	u.armorModifier = stats.ArmorModifier
+	u.attackModifier = stats.AttackModifier
+	u.armorUpgrades = 0
+	u.attackUpgrades = 0
+	u.attackRange = stats.AttackRange
+	u.visionRange = stats.VisionRange
+
+	// Parse elevation layer string to enum
+	switch stats.ElevationLayer {
+	case "Ground":
+		u.elevationLayer = Ground
+	case "Air":
+		u.elevationLayer = Air
+	case "Burrowed":
+		u.elevationLayer = Burrowed
 	default:
-		// Fallback for unknown types
-		u.maxHealth = 50
-		u.health = 50
-		u.damage = 5
+		u.elevationLayer = Ground
 	}
 }
-*/
-
-// ═══════════════════════════════════════════════════════════════════════════
-// CHECKPOINT: Before you continue...
-// ═══════════════════════════════════════════════════════════════════════════
-//
-// ✅ Can you explain what RWMutex does and why we use it?
-// ✅ Can you explain the difference between buffered and unbuffered channels?
-// ✅ Can you explain why we need context cancellation?
-// ✅ Can you explain what happens if we forget wg.Add(1)?
-//
-// If ANY of these are unclear, READ CONCEPTS_GUIDE.md before continuing!
-// Understanding beats implementation. Always.
-//
-// ═══════════════════════════════════════════════════════════════════════════
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SECTION 4: COMMAND & EVENT TYPES
@@ -662,8 +635,6 @@ const (
 	CmdAttack
 	CmdStop
 	CmdHold
-	// 🏗️ YOUR CHALLENGE: Add more command types
-	// Ideas: CmdRetreat, CmdPatrol, CmdCast (for abilities)
 )
 
 // Command represents an order sent to a unit
@@ -676,7 +647,26 @@ type Command struct {
 	Type   CommandType
 	Target *Unit    // For attack commands
 	Dest   Position // For move commands
-	// 🏗️ OPTIONAL: Add more fields for complex commands
+}
+
+func (c Command) String() string {
+	switch c.Type {
+	case CmdMove:
+		return fmt.Sprintf("Move to (%.1f, %.1f)", c.Dest.X, c.Dest.Y)
+	case CmdAttack:
+		targetID := "nil"
+		if c.Target != nil {
+			targetID = c.Target.ID
+		}
+		return fmt.Sprintf("Attack %s", targetID)
+	case CmdStop:
+		return "Stop"
+	case CmdHold:
+		return "Hold Position"
+	default:
+		return fmt.Sprintf("Command(%d)", c.Type)
+
+	}
 }
 
 // UnitEventType represents different types of events units can emit
@@ -688,7 +678,6 @@ const (
 	EventDied                  // This unit died
 	EventMoved
 	EventIdle
-	// 🏗️ YOUR CHALLENGE: Add more event types as needed
 )
 
 // UnitEvent represents something that happened to/by a unit
@@ -704,51 +693,163 @@ type UnitEvent struct {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// NEXT STEPS FOR YOU:
-// ═══════════════════════════════════════════════════════════════════════════
-//
-// You've seen the foundation. Now implement:
-//
-// 1. **Getter Methods** (with RLock):
-//    - GetHealth() int
-//    - GetState() UnitState
-//    - GetPosition() Position
-//    - GetTarget() *Unit
-//    Pattern: RLock → read value → RUnlock → return
-//
-// 2. **Setter Methods** (with Lock):
-//    - SetState(UnitState)
-//    - SetPosition(Position)
-//    - TakeDamage(int)
-//    Pattern: Lock → modify value → Unlock
-//
-// 3. **The run() Method** (The main goroutine loop):
-//    - Use select to listen on multiple channels
-//    - Handle commands from commands channel
-//    - Check for context cancellation
-//    - Send events to events channel
-//    Pattern: for { select { case cmd := <-commands... case <-ctx.Done()... } }
-//
-// 4. **Command Handlers**:
-//    - handleMoveCommand(Command)
-//    - handleAttackCommand(Command)
-//    - handleStopCommand(Command)
-//
-// 5. **Lifecycle Methods**:
-//    - Shutdown() - Cancel context, wait for goroutine
-//    - Die() - Set state to Dead, emit event, shutdown
-//
-// 🔥 PRO TIP FROM BISU:
-// "Build one piece at a time. Get getters/setters working first. Test them.
-//  Then build run(). Test it. Then add command handlers. One piece at a time."
-//
-// 📚 STUCK? Read CONCEPTS_GUIDE.md for pattern examples!
-// 📊 NEED STRUCTURE? See PROGRESSION_MAP.md for the learning path!
-//
+// UNIT METHODS
 // ═══════════════════════════════════════════════════════════════════════════
 
-// Continue in types.go for your implementations...
-// Remember: The goal isn't just to make it work—it's to UNDERSTAND why it works!
-//
+func (u *Unit) GetHealth() int {
+	u.mu.RLock()
+	defer u.mu.RUnlock()
+	return u.health
+}
 
-// **GG HF!** (Good Game, Have Fun learning!) 🎯
+func (u *Unit) GetDamage() int {
+	u.mu.RLock()
+	defer u.mu.RUnlock()
+	return u.baseDamage + u.attackModifier*u.attackUpgrades
+}
+
+func (u *Unit) GetArmor() int {
+	u.mu.RLock()
+	defer u.mu.RUnlock()
+	totalArmor := u.baseArmor + u.armorModifier*u.armorUpgrades
+	return totalArmor
+}
+
+func (u *Unit) GetState() UnitState {
+	u.mu.RLock()
+	defer u.mu.RUnlock()
+	return u.state
+}
+
+func (u *Unit) GetPosition() Position {
+	u.mu.RLock()
+	defer u.mu.RUnlock()
+	return u.position
+}
+
+func (u *Unit) GetTarget() *Unit {
+	u.mu.RLock()
+	defer u.mu.RUnlock()
+	return u.target
+}
+
+func (u *Unit) SetState(state UnitState) {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	u.state = state
+}
+
+func (u *Unit) SetPosition(position Position) {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	u.position = position
+}
+
+func (u *Unit) SetTarget(target *Unit) {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	u.target = target
+}
+
+func (u *Unit) TakeDamage(amount int) int {
+	u.mu.Lock()
+	defer u.mu.Unlock()
+	u.health -= amount
+	if u.health < 0 {
+		u.health = 0
+	}
+
+	return u.health
+}
+
+func (u *Unit) run() {
+	defer u.wg.Done()
+
+	for {
+		select {
+		case cmd, ok := <-u.commands:
+			if !ok {
+				return
+			}
+			switch cmd.Type {
+			case CmdMove:
+				u.handleMove(cmd)
+			case CmdAttack:
+				u.handleAttack(cmd)
+			case CmdStop:
+				u.handleStop(cmd)
+			case CmdHold:
+				u.handleHold(cmd)
+			}
+			fmt.Printf("[%s] %s\n", u.ID, cmd)
+		case <-u.ctx.Done():
+			return
+		}
+	}
+}
+
+func (u *Unit) SendCommand(cmd Command) error {
+	// Check context first to avoid sending on closed channel
+	select {
+	case <-u.ctx.Done():
+		return fmt.Errorf("unit is shutting down")
+	default:
+	}
+
+	// Now try to send with timeout
+	select {
+	case u.commands <- cmd:
+		return nil
+	case <-u.ctx.Done():
+		return fmt.Errorf("unit is shutting down")
+	case <-time.After(100 * time.Millisecond):
+		return fmt.Errorf("command queue full - backpressure")
+	}
+}
+
+func (u *Unit) Shutdown() {
+	// Use sync.Once to ensure this only runs once, even if called multiple times
+	u.shutdownOnce.Do(func() {
+		u.cancel()
+		close(u.commands)
+	})
+}
+
+func (u *Unit) handleMove(cmd Command) {
+	u.SetState(Moving)
+	u.SetPosition(cmd.Dest)
+	moveEvent := UnitEvent{Type: EventMoved, Source: u, Target: nil, Timestamp: time.Now()}
+	u.events <- moveEvent
+}
+
+func (u *Unit) handleAttack(cmd Command) {
+	if cmd.Target == nil {
+		fmt.Printf("[%s] Attack command has no target!\n", u.ID)
+		return
+	}
+	u.SetState(Attacking)
+	u.SetTarget(cmd.Target)
+	dmg := u.CalculateDamageAgainst(cmd.Target)
+	cmd.Target.TakeDamage(dmg)
+	attackEvent := UnitEvent{Type: EventDamaged, Source: u, Target: cmd.Target, Timestamp: time.Now()}
+	u.events <- attackEvent
+}
+
+func (u *Unit) handleStop(cmd Command) {
+	u.SetState(Idle)
+	u.SetTarget(nil)
+}
+
+func (u *Unit) handleHold(cmd Command) {
+	u.SetState(HoldingPosition)
+}
+
+func (u *Unit) CalculateDamageAgainst(target *Unit) int {
+	targetArmor := target.GetArmor()
+	dmg := u.GetDamage()
+	result := dmg - targetArmor
+	if result < 0 {
+		return 0
+	}
+	return result
+}
